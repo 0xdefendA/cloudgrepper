@@ -12,10 +12,10 @@ import sys
 from contextlib import redirect_stdout
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "..", "cloudgrep"))
-from cloudgrep.search import Search  # noqa: E402
+sys.path.insert(0, os.path.join(HERE, "oracle"))
+from search import Search  # vendored oracle (see scripts/oracle/search.py)  # noqa: E402
 
-DATA = os.path.join(HERE, "..", "..", "cloudgrep", "tests", "data")
+DATA = os.path.join(HERE, "..", "tests", "data")
 OUT = os.path.join(HERE, "..", "tests", "golden")
 os.makedirs(OUT, exist_ok=True)
 

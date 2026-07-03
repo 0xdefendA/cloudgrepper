@@ -99,11 +99,7 @@ mod tests {
     use super::*;
 
     fn fixture(name: &str) -> Vec<u8> {
-        let p = format!(
-            "{}/../cloudgrep/tests/data/{}",
-            env!("CARGO_MANIFEST_DIR"),
-            name
-        );
+        let p = format!("{}/tests/data/{}", env!("CARGO_MANIFEST_DIR"), name);
         std::fs::read(p).unwrap()
     }
 
@@ -173,7 +169,7 @@ mod tests {
     #[test]
     fn all_fixtures_decode_without_panic() {
         // Port of Python test_weird_files (UTF-8 torture files included)
-        let dir = format!("{}/../cloudgrep/tests/data", env!("CARGO_MANIFEST_DIR"));
+        let dir = format!("{}/tests/data", env!("CARGO_MANIFEST_DIR"));
         for entry in std::fs::read_dir(dir).unwrap() {
             let data = std::fs::read(entry.unwrap().path()).unwrap();
             let _ = split_lines(&decode_ignore(&data)).len();

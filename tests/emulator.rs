@@ -29,11 +29,7 @@ async fn s3_client() -> aws_sdk_s3::Client {
 }
 
 fn fixture_path(name: &str) -> String {
-    format!(
-        "{}/../cloudgrep/tests/data/{}",
-        env!("CARGO_MANIFEST_DIR"),
-        name
-    )
+    format!("{}/tests/data/{}", env!("CARGO_MANIFEST_DIR"), name)
 }
 
 async fn seed(client: &aws_sdk_s3::Client, bucket: &str, objects: &[(&str, Vec<u8>)]) {

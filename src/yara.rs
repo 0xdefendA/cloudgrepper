@@ -95,13 +95,10 @@ mod tests {
     #[test]
     fn fixture_rule_matches_apache_log() {
         // yara.rule fixture: rule get { $get = "GET" nocase wide ascii }
-        let path = format!(
-            "{}/../cloudgrep/tests/data/yara.rule",
-            env!("CARGO_MANIFEST_DIR")
-        );
+        let path = format!("{}/tests/data/yara.rule", env!("CARGO_MANIFEST_DIR"));
         let rules = compile_rules(&path).unwrap();
         let data = std::fs::read(format!(
-            "{}/../cloudgrep/tests/data/apache_access.log",
+            "{}/tests/data/apache_access.log",
             env!("CARGO_MANIFEST_DIR")
         ))
         .unwrap();

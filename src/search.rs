@@ -200,7 +200,7 @@ mod tests {
 
     fn fixture(name: &str) -> Vec<u8> {
         std::fs::read(format!(
-            "{}/../cloudgrep/tests/data/{}",
+            "{}/tests/data/{}",
             env!("CARGO_MANIFEST_DIR"),
             name
         ))
