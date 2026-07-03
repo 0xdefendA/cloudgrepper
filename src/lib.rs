@@ -5,4 +5,5 @@ pub mod logparse;
 pub mod output;
 pub mod providers;
 pub mod pyjson;
+pub mod runner;
 pub mod search;
