@@ -110,9 +110,19 @@ async fn s3_filters_and_gz_decompression() {
         .args(["-b", "filter-bucket", "-q", "dummy content", "-f", "log"])
         .output()
         .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("log_file1.txt") && stdout.contains("log_file2.txt"));
     assert!(!stdout.contains("not_a_thing.txt"));
+    assert!(
+        !stdout.contains("log_empty.txt"),
+        "empty file should be dropped by the size filter"
+    );
 
     // gz object decompressed transparently (Python 1.0.5 needs -og; we don't)
     let out = s3_env(&mut Command::new(env!("CARGO_BIN_EXE_cloudgrepper")))
@@ -126,5 +136,11 @@ async fn s3_filters_and_gz_decompression() {
         ])
         .output()
         .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     assert!(String::from_utf8_lossy(&out.stdout).contains("Running on machine"));
 }
