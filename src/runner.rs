@@ -46,17 +46,19 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
             queries = load_query_file(file)?;
         }
     }
-    if cli.yara.is_none() && queries.is_empty() {
+    // Python (cloudgrep.py::search): `if not query: return` runs unconditionally,
+    // so a missing query always exits — even when -y is given.
+    if queries.is_empty() {
         error!("No query provided. Exiting.");
         return Ok(());
     }
 
-    if cli.yara.is_some() {
-        // Wired in Task 14 (yara-x). Until then this is an explicit,
-        // honest failure — not silent wrong behavior.
-        error!("Yara scanning not yet implemented (Task 14). Exiting.");
-        return Ok(());
-    }
+    // Yara rules compile after the query check, matching Python's ordering.
+    // When -y is given, yara scanning replaces regex search entirely.
+    let yara_rules = match &cli.yara {
+        Some(path) => Some(Arc::new(crate::yara::compile_rules(path)?)),
+        None => None,
+    };
 
     let log_properties = cli
         .log_properties
@@ -105,7 +107,14 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
             bucket,
             queries_display(&queries)
         );
-        search_provider(Arc::new(provider), keys, cfg.clone(), DEFAULT_WORKERS).await;
+        search_provider(
+            Arc::new(provider),
+            keys,
+            cfg.clone(),
+            yara_rules.clone(),
+            DEFAULT_WORKERS,
+        )
+        .await;
     }
 
     if let (Some(account_name), Some(container_name)) = (&cli.account_name, &cli.container_name) {
@@ -118,7 +127,14 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
             container_name,
             queries_display(&queries)
         );
-        search_provider(Arc::new(provider), keys, cfg.clone(), DEFAULT_WORKERS).await;
+        search_provider(
+            Arc::new(provider),
+            keys,
+            cfg.clone(),
+            yara_rules.clone(),
+            DEFAULT_WORKERS,
+        )
+        .await;
     }
 
     if let Some(google_bucket) = &cli.google_bucket {
@@ -135,7 +151,14 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
             google_bucket,
             queries_display(&queries)
         );
-        search_provider(Arc::new(provider), keys, cfg.clone(), DEFAULT_WORKERS).await;
+        search_provider(
+            Arc::new(provider),
+            keys,
+            cfg.clone(),
+            yara_rules.clone(),
+            DEFAULT_WORKERS,
+        )
+        .await;
     }
 
     Ok(())
@@ -145,17 +168,29 @@ pub async fn search_provider(
     store: Arc<dyn ObjectStore>,
     keys: Vec<crate::filters::ObjectMeta>,
     cfg: Arc<SearchConfig>,
+    yara_rules: Option<Arc<yara_x::Rules>>,
     workers: usize,
 ) -> usize {
     futures::stream::iter(keys.into_iter().map(|meta| {
         let store = store.clone();
         let cfg = cfg.clone();
+        let yara_rules = yara_rules.clone();
         async move {
             info!("Downloading {}", store.display_url(&meta.key));
             match store.fetch(&meta.key).await {
                 Ok(data) => {
                     let mut buf = Vec::new();
-                    let matched = search_object(&cfg, &meta.key, &data, &mut buf);
+                    let matched = match &yara_rules {
+                        Some(rules) => crate::yara::scan_object(
+                            rules,
+                            &meta.key,
+                            &data,
+                            cfg.hide_filenames,
+                            cfg.json_output,
+                            &mut buf,
+                        ),
+                        None => search_object(&cfg, &meta.key, &data, &mut buf),
+                    };
                     let stdout = std::io::stdout();
                     let mut lock = stdout.lock();
                     let _ = lock.write_all(&buf);

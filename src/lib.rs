@@ -7,3 +7,4 @@ pub mod providers;
 pub mod pyjson;
 pub mod runner;
 pub mod search;
+pub mod yara;

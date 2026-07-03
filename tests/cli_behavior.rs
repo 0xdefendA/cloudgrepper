@@ -29,6 +29,22 @@ fn no_query_logs_error_and_exits_0() {
 }
 
 #[test]
+fn yara_without_query_logs_error_and_exits_0() {
+    // Python's `if not query: return` runs unconditionally, so -y without
+    // -q/-v exits "No query provided" too.
+    let rule = format!(
+        "{}/../cloudgrep/tests/data/yara.rule",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    let out = bin()
+        .args(["-b", "some-bucket", "-y", &rule])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(0));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("No query provided. Exiting."));
+}
+
+#[test]
 fn bad_regex_exits_nonzero() {
     let out = bin()
         .args(["-q", "(unclosed", "-lt", "cloudtrail"])
