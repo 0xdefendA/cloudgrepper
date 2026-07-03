@@ -198,6 +198,24 @@ divergence found during validation is documented.
 
 Definition of done per milestone: same inputs → same output as Python on the oracle tests.
 
+## Known divergences from Python 1.0.5 (deliberate)
+
+Discovered during implementation planning; both are Python 1.0.5 regressions we do not
+replicate. Everything else follows Python, quirks included.
+
+1. **All matching lines are reported.** Python's `process_lines` uses `any(...)`, which
+   short-circuits after the first matching line per file — grep semantics are broken in
+   1.0.5. cloudgrepper searches every line. Golden-output comparisons account for this
+   (exact equality on single-match inputs; Python-output-is-a-prefix elsewhere).
+2. **Decompression always works.** Python 1.0.5 detects `.gz`/`.zip` from the temp-file
+   name (random, extensionless), so S3 objects are never decompressed unless `-og` is
+   passed. cloudgrepper always detects from the object key (equivalent to Python ≤ 1.0.4,
+   or 1.0.5 with `-og`).
+
+Minor, also documented: yara `match_strings` holds matched pattern identifiers (yara-x);
+naive `--start_date`/`--end_date` are treated as UTC instead of crashing on naive/aware
+comparison; `--file_size` still does not apply to GCS (Python quirk kept).
+
 ## Conventions
 
 - `cargo fmt` + `cargo clippy` clean before every commit.
