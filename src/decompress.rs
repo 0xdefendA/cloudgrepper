@@ -36,6 +36,9 @@ pub fn decode_ignore(data: &[u8]) -> String {
             Err(e) => {
                 let valid = e.valid_up_to();
                 out.push_str(std::str::from_utf8(&rest[..valid]).unwrap());
+                // error_len() is None when the input ends mid-sequence
+                // (truncated, not invalid); Python errors="ignore" drops a
+                // truncated trailing sequence too, so skip to end-of-input.
                 let skip = e.error_len().unwrap_or(rest.len() - valid);
                 rest = &rest[valid + skip..];
             }
