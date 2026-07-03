@@ -7,7 +7,20 @@ BUCKET=bench-bucket
 export AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin
 export AWS_ENDPOINT_URL=http://127.0.0.1:9000 AWS_REGION=us-east-1 AWS_DEFAULT_REGION=us-east-1
 HERE="$(cd "$(dirname "$0")" && pwd)"
-FIXTURE="$HERE/../../cloudgrep/tests/data/apache_access.log"
+
+# Resolve the python cloudgrep oracle: pip-installed, or a sibling clone.
+if ! python3 -c "import cloudgrep" 2>/dev/null; then
+  if [ -d "$HERE/../../cloudgrep" ]; then
+    export PYTHONPATH="$HERE/../../cloudgrep${PYTHONPATH:+:$PYTHONPATH}"
+  fi
+fi
+if ! python3 -c "import cloudgrep" 2>/dev/null; then
+  echo "python cloudgrep not found. Either 'pip install cloudgrep' or clone" >&2
+  echo "https://github.com/cado-security/cloudgrep as a sibling of this repo." >&2
+  exit 2
+fi
+
+FIXTURE="$HERE/../tests/data/apache_access.log"
 
 python3 - "$N" "$BUCKET" "$FIXTURE" <<'PY'
 import sys, boto3

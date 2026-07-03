@@ -8,6 +8,19 @@
 set -euo pipefail
 MODE=${1:?mode: s3|azure|gcs}; shift
 HERE="$(cd "$(dirname "$0")" && pwd)"
+
+# Resolve the python cloudgrep oracle: pip-installed, or a sibling clone.
+if ! python3 -c "import cloudgrep" 2>/dev/null; then
+  if [ -d "$HERE/../../cloudgrep" ]; then
+    export PYTHONPATH="$HERE/../../cloudgrep${PYTHONPATH:+:$PYTHONPATH}"
+  fi
+fi
+if ! python3 -c "import cloudgrep" 2>/dev/null; then
+  echo "python cloudgrep not found. Either 'pip install cloudgrep' or clone" >&2
+  echo "https://github.com/cado-security/cloudgrep as a sibling of this repo." >&2
+  exit 2
+fi
+
 BIN="$HERE/../target/release/cloudgrepper"
 case "$MODE" in
   s3)    ARGS=(-b "$1" -q "$2"); shift 2 ;;
