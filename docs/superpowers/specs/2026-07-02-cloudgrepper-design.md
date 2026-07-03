@@ -212,6 +212,11 @@ replicate. Everything else follows Python, quirks included.
    passed. cloudgrepper always detects from the object key (equivalent to Python ≤ 1.0.4,
    or 1.0.5 with `-og`).
 
+3. **Two-stage "matched" bookkeeping.** With a log format active, when a regex hits a raw
+   line but no extracted record re-matches, Python still counts the file as matched;
+   cloudgrepper counts it only when a record is actually emitted. Invisible in CLI output
+   (Python discards the per-file hit count) — noted for API-level comparisons.
+
 Minor, also documented: yara `match_strings` holds matched pattern identifiers (yara-x);
 naive `--start_date`/`--end_date` are treated as UTC instead of crashing on naive/aware
 comparison; `--file_size` still does not apply to GCS (Python quirk kept).
