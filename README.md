@@ -191,7 +191,7 @@ The following intentional divergences exist between cloudgrepper (Rust) and Pyth
 
 2. **`.gz`/`.zip` decompression is always enabled.** Python 1.0.5 detects `.gz`/`.zip` from the temp-file name (which is random and extensionless), so S3 objects are never decompressed unless `-og/--use_og_name` is passed. cloudgrepper always detects compression from the object key (equivalent to Python ≤ 1.0.4, or 1.0.5 with `-og`). This is a fix for a regression in Python 1.0.5.
 
-3. **Two-stage "matched" bookkeeping with log formats.** With a log format active (e.g., `-lt cloudtrail`), when a regex matches a raw line but no extracted record re-matches, Python still counts the file as matched; cloudgrepper counts it only when a record is actually emitted. This is invisible in CLI output (Python discards per-file hit counts) but may affect API-level comparisons.
+3. **Two-stage "matched" bookkeeping with log formats.** With a log format active (e.g., `-lt cloudtrail`), when a regex matches a raw line but no extracted record re-matches, Python still counts the file as matched; cloudgrepper counts it only when a record is actually emitted. This is invisible in CLI output (Python discards per-file hit counts) but may affect programmatic output comparisons.
 
 4. **Yara `match_strings` reports matched pattern identifiers.** cloudgrepper lists matched pattern identifiers from yara-x; in JSON mode, yara output replicates Python's `str(dict)` fallback for compatibility.
 
