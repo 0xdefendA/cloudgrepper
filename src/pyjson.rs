@@ -1,18 +1,21 @@
 //! Python-compatible JSON serialization (json.dumps defaults) and repr()
 //! formatting. Output fidelity with the Python cloudgrep requires both.
+//!
+//! The public functions `dumps` and `python_repr` are used by the search
+//! pipeline; suppress the dead_code lint here because the functions are
+//! wired in at runtime rather than called directly from `main`.
+#![allow(dead_code)]
 
 use serde_json::Value;
 
 /// Serialize a JSON value to a Python-compatible JSON string.
 /// Matches Python json.dumps() with ensure_ascii=True (non-ASCII chars are \uXXXX-escaped).
-#[allow(dead_code)]
 pub fn dumps(value: &Value) -> String {
     let mut out = String::new();
     write_value(&mut out, value);
     out
 }
 
-#[allow(dead_code)]
 fn write_value(out: &mut String, v: &Value) {
     match v {
         Value::Null => out.push_str("null"),
@@ -44,22 +47,50 @@ fn write_value(out: &mut String, v: &Value) {
     }
 }
 
-#[allow(dead_code)]
+/// Render an f64 exactly as Python's json.dumps / repr does.
+///
+/// Python uses scientific notation when exponent >= 16 or < -4, and always
+/// formats the exponent with a sign and at least two digits (e.g. `1e+20`,
+/// `1.5e-05`).  Fixed notation otherwise, with a decimal point always present.
+fn python_float_repr(f: f64) -> String {
+    if f.is_nan() {
+        return "NaN".to_string(); // json.dumps(float('nan'))
+    }
+    if f.is_infinite() {
+        return if f > 0.0 {
+            "Infinity".to_string()
+        } else {
+            "-Infinity".to_string()
+        };
+    }
+    // Rust {:e} gives the shortest round-trip mantissa, e.g. "1.5e-5", "1e20"
+    let sci = format!("{f:e}");
+    let (mantissa, exp_str) = sci.split_once('e').expect("{:e} always has exponent");
+    let exp: i32 = exp_str.parse().expect("exponent is integer");
+    if !(-4..16).contains(&exp) {
+        // Python: 'e' + sign + at-least-2-digit exponent
+        let sign = if exp < 0 { '-' } else { '+' };
+        format!("{mantissa}e{sign}{:02}", exp.unsigned_abs())
+    } else {
+        // fixed notation; Rust Display is already shortest round-trip
+        let s = format!("{f}");
+        if s.contains('.') {
+            s
+        } else {
+            format!("{s}.0")
+        }
+    }
+}
+
 fn write_number(out: &mut String, n: &serde_json::Number) {
     if n.is_f64() {
         let f = n.as_f64().unwrap();
-        let s = format!("{f}");
-        out.push_str(&s);
-        // Python repr always keeps a decimal point on finite floats
-        if !s.contains('.') && !s.contains('e') && !s.contains("inf") && !s.contains("NaN") {
-            out.push_str(".0");
-        }
+        out.push_str(&python_float_repr(f));
     } else {
         out.push_str(&n.to_string());
     }
 }
 
-#[allow(dead_code)]
 fn write_json_string(out: &mut String, s: &str) {
     out.push('"');
     for c in s.chars() {
@@ -89,14 +120,12 @@ fn write_json_string(out: &mut String, s: &str) {
 }
 
 /// Python repr() representation for dict/list values
-#[allow(dead_code)]
 pub fn python_repr(v: &Value) -> String {
     let mut out = String::new();
     write_repr(&mut out, v);
     out
 }
 
-#[allow(dead_code)]
 fn write_repr(out: &mut String, v: &Value) {
     match v {
         Value::Null => out.push_str("None"),
@@ -128,7 +157,6 @@ fn write_repr(out: &mut String, v: &Value) {
     }
 }
 
-#[allow(dead_code)]
 fn write_str_repr(out: &mut String, s: &str) {
     // Python repr: single quotes, unless the string contains ' and not "
     let quote = if s.contains('\'') && !s.contains('"') {
@@ -178,6 +206,26 @@ mod tests {
         // key order is insertion order (preserve_order feature)
         let v: serde_json::Value = serde_json::from_str(r#"{"z": 1, "a": 2}"#).unwrap();
         assert_eq!(dumps(&v), r#"{"z": 1, "a": 2}"#);
+    }
+
+    #[test]
+    fn float_formatting_matches_python() {
+        // Verified against: python3 -c 'import json; ...' 2025-07
+        // Scientific: exp >= 16
+        assert_eq!(dumps(&json!(1e20_f64)), "1e+20");
+        assert_eq!(dumps(&json!(1e16_f64)), "1e+16");
+        // Scientific: exp < -4
+        assert_eq!(dumps(&json!(1.5e-5_f64)), "1.5e-05");
+        assert_eq!(dumps(&json!(1e-5_f64)), "1e-05");
+        // Fixed: exp in [-4, 16)
+        assert_eq!(dumps(&json!(1e15_f64)), "1000000000000000.0");
+        assert_eq!(dumps(&json!(0.0001_f64)), "0.0001");
+        assert_eq!(dumps(&json!(3.5_f64)), "3.5"); // simple non-PI float
+        assert_eq!(dumps(&json!(1.0_f64)), "1.0");
+        // -0.0: Python json.dumps(-0.0) == "-0.0"
+        assert_eq!(python_float_repr(-0.0_f64), "-0.0");
+        // Integers are unchanged
+        assert_eq!(dumps(&json!(42)), "42");
     }
 
     #[test]
