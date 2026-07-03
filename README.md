@@ -64,6 +64,8 @@ Use a specific AWS profile:
 cloudgrepper -b my-bucket -q "error" -pr myprofile
 ```
 
+**Credentials:** resolved in boto3 order — environment variables first, then static keys from the selected profile (`~/.aws/credentials` / `~/.aws/config`), then the SDK default chain (SSO, IMDS, etc.). The bucket's region is auto-resolved via `GetBucketLocation`, so a profile region mismatch does not cause `PermanentRedirect`.
+
 ### Azure Storage Examples
 
 Search a container:

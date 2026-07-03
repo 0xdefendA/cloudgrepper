@@ -12,13 +12,13 @@ pub struct Cli {
     /// AWS S3 Bucket to search (e.g. my-bucket)
     #[arg(short = 'b', long)]
     pub bucket: Option<String>,
-    /// Azure Account Name to search
+    /// Azure Account Name to search [short: -an]
     #[arg(long = "account-name")]
     pub account_name: Option<String>,
-    /// Azure Container Name to search
+    /// Azure Container Name to search [short: -cn]
     #[arg(long = "container-name")]
     pub container_name: Option<String>,
-    /// Google Cloud Bucket to search
+    /// Google Cloud Bucket to search [short: -gb]
     #[arg(long = "google-bucket")]
     pub google_bucket: Option<String>,
     /// Comma-separated list of regex patterns to search
@@ -42,34 +42,34 @@ pub struct Cli {
     /// Filter objects modified before this date (YYYY-MM-DD)
     #[arg(short = 'e', long = "end_date")]
     pub end_date: Option<String>,
-    /// Max file size in bytes (default: 100MB)
+    /// Max file size in bytes (default: 100MB) [short: -fs]
     #[arg(long = "file_size", default_value_t = 100_000_000)]
     pub file_size: i64,
-    /// AWS profile to use (e.g. default, dev, prod)
+    /// AWS profile to use (e.g. default, dev, prod) [short: -pr]
     #[arg(long)]
     pub profile: Option<String>,
     /// Enable debug logging
     #[arg(short = 'd', long)]
     pub debug: bool,
-    /// Hide filenames in output
+    /// Hide filenames in output [short: -hf]
     #[arg(long = "hide_filenames")]
     pub hide_filenames: bool,
-    /// Pre-defined log type (e.g. cloudtrail, azure)
+    /// Pre-defined log type (e.g. cloudtrail, azure) [short: -lt]
     #[arg(long = "log_type")]
     pub log_type: Option<String>,
-    /// Custom log format (e.g. json, csv)
+    /// Custom log format (e.g. json, csv) [short: -lf]
     #[arg(long = "log_format")]
     pub log_format: Option<String>,
-    /// Comma-separated list of log properties to extract
+    /// Comma-separated list of log properties to extract [short: -lp]
     #[arg(long = "log_properties")]
     pub log_properties: Option<String>,
-    /// Output results in JSON format
+    /// Output results in JSON format [short: -jo]
     #[arg(long = "json_output")]
     pub json_output: bool,
-    /// Convert date to ISO format (YYYY-MM-DDTHH:MM:SS)
+    /// Convert date to ISO format (YYYY-MM-DDTHH:MM:SS) [short: -cd]
     #[arg(long = "convert_date")]
     pub convert_date: bool,
-    /// Use original key name instead of temporary name for uncompressed files
+    /// Use original key name instead of temporary name for uncompressed files [short: -og]
     #[arg(long = "use_og_name")]
     pub use_og_name: bool,
 }
