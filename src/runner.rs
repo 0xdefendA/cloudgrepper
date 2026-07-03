@@ -15,6 +15,14 @@ use tracing::{error, info, warn};
 
 pub const DEFAULT_WORKERS: usize = 10;
 
+pub fn workers() -> usize {
+    std::env::var("CLOUDGREPPER_WORKERS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .filter(|&n| n > 0)
+        .unwrap_or(DEFAULT_WORKERS)
+}
+
 pub fn resolve_log_format(
     log_type: Option<&str>,
     log_format: Option<String>,
@@ -112,7 +120,7 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
             keys,
             cfg.clone(),
             yara_rules.clone(),
-            DEFAULT_WORKERS,
+            workers(),
         )
         .await;
     }
@@ -132,7 +140,7 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
             keys,
             cfg.clone(),
             yara_rules.clone(),
-            DEFAULT_WORKERS,
+            workers(),
         )
         .await;
     }
@@ -156,7 +164,7 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
             keys,
             cfg.clone(),
             yara_rules.clone(),
-            DEFAULT_WORKERS,
+            workers(),
         )
         .await;
     }
@@ -179,18 +187,26 @@ pub async fn search_provider(
             info!("Downloading {}", store.display_url(&meta.key));
             match store.fetch(&meta.key).await {
                 Ok(data) => {
-                    let mut buf = Vec::new();
-                    let matched = match &yara_rules {
-                        Some(rules) => crate::yara::scan_object(
-                            rules,
-                            &meta.key,
-                            &data,
-                            cfg.hide_filenames,
-                            cfg.json_output,
-                            &mut buf,
-                        ),
-                        None => search_object(&cfg, &meta.key, &data, &mut buf),
-                    };
+                    let cfg = cfg.clone();
+                    let yara_rules = yara_rules.clone();
+                    let key = meta.key.clone();
+                    let (matched, buf) = tokio::task::spawn_blocking(move || {
+                        let mut buf = Vec::new();
+                        let matched = match &yara_rules {
+                            Some(rules) => crate::yara::scan_object(
+                                rules,
+                                &key,
+                                &data,
+                                cfg.hide_filenames,
+                                cfg.json_output,
+                                &mut buf,
+                            ),
+                            None => search_object(&cfg, &key, &data, &mut buf),
+                        };
+                        (matched, buf)
+                    })
+                    .await
+                    .unwrap_or((false, Vec::new()));
                     let stdout = std::io::stdout();
                     let mut lock = stdout.lock();
                     let _ = lock.write_all(&buf);
@@ -211,6 +227,17 @@ pub async fn search_provider(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn workers_env_override() {
+        std::env::remove_var("CLOUDGREPPER_WORKERS");
+        assert_eq!(workers(), DEFAULT_WORKERS);
+        std::env::set_var("CLOUDGREPPER_WORKERS", "32");
+        assert_eq!(workers(), 32);
+        std::env::set_var("CLOUDGREPPER_WORKERS", "zero");
+        assert_eq!(workers(), DEFAULT_WORKERS);
+        std::env::remove_var("CLOUDGREPPER_WORKERS");
+    }
 
     #[test]
     fn log_type_presets() {
