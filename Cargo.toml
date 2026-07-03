@@ -16,7 +16,12 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1"
 async-trait = "0.1"
-aws-config = { version = "1", features = ["behavior-version-latest"] }
+aws-config = { version = "1", features = [
+    "behavior-version-latest",
+    # profiles backed by `aws login` sessions / IAM Identity Center
+    "credentials-login",
+    "sso",
+] }
 aws-sdk-s3 = "1"
 azure_core = "0.21"
 azure_identity = "0.21"
