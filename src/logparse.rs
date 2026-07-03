@@ -38,6 +38,10 @@ pub fn parse_logs(line: &str, log_format: &str) -> Option<Value> {
             };
             for rec in rdr.records().flatten() {
                 let mut obj = serde_json::Map::new();
+                // Divergence from Python csv.DictReader on malformed rows:
+                // zip() drops extra columns (Python collects them under a
+                // None key) and omits missing trailing columns (Python maps
+                // them to None). Unreachable for well-formed CSV.
                 for (h, v) in headers.iter().zip(rec.iter()) {
                     obj.insert(h.to_string(), Value::String(v.to_string()));
                 }
