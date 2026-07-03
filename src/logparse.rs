@@ -4,7 +4,6 @@
 use serde_json::Value;
 use tracing::error;
 
-#[allow(dead_code)]
 pub fn parse_logs(line: &str, log_format: &str) -> Option<Value> {
     match log_format {
         "json" => match serde_json::from_str::<Value>(line) {
@@ -56,7 +55,6 @@ pub fn parse_logs(line: &str, log_format: &str) -> Option<Value> {
     }
 }
 
-#[allow(dead_code)]
 pub fn extract_log_entries(parsed: Value, log_properties: &[String]) -> Vec<Value> {
     let mut current = parsed;
     if !log_properties.is_empty() && current.is_object() {
@@ -80,7 +78,6 @@ pub fn extract_log_entries(parsed: Value, log_properties: &[String]) -> Vec<Valu
     }
 }
 
-#[allow(dead_code)]
 pub fn is_falsy(v: &Value) -> bool {
     match v {
         Value::Null => true,

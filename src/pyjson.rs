@@ -2,9 +2,7 @@
 //! formatting. Output fidelity with the Python cloudgrep requires both.
 //!
 //! The public functions `dumps` and `python_repr` are used by the search
-//! pipeline; suppress the dead_code lint here because the functions are
-//! wired in at runtime rather than called directly from `main`.
-#![allow(dead_code)]
+//! pipeline.
 
 use serde_json::Value;
 

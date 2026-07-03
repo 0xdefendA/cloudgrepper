@@ -1,7 +1,5 @@
 //! Object-listing filters, ported from cloud.py's filter_object* functions.
 
-#![allow(dead_code)]
-
 use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
 
 #[derive(Clone, Debug)]

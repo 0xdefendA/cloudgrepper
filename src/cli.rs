@@ -3,8 +3,6 @@
 
 use clap::Parser;
 
-// dead_code allows are staging: consumed by the runner in Task 10.
-#[allow(dead_code)]
 #[derive(Parser, Debug)]
 #[command(
     name = "cloudgrepper",
@@ -76,7 +74,6 @@ pub struct Cli {
     pub use_og_name: bool,
 }
 
-#[allow(dead_code)]
 const SHORT_MAP: [(&str, &str); 12] = [
     ("-an", "--account-name"),
     ("-cn", "--container-name"),
@@ -92,7 +89,6 @@ const SHORT_MAP: [(&str, &str); 12] = [
     ("-og", "--use_og_name"),
 ];
 
-#[allow(dead_code)]
 pub fn normalize_args<I: IntoIterator<Item = String>>(args: I) -> Vec<String> {
     args.into_iter()
         .map(|arg| {
@@ -109,7 +105,6 @@ pub fn normalize_args<I: IntoIterator<Item = String>>(args: I) -> Vec<String> {
         .collect()
 }
 
-#[allow(dead_code)]
 pub fn parse_comma_list(s: &str) -> Vec<String> {
     s.split(',')
         .map(str::trim)
@@ -118,7 +113,6 @@ pub fn parse_comma_list(s: &str) -> Vec<String> {
         .collect()
 }
 
-#[allow(dead_code)]
 pub fn load_query_file(path: &str) -> anyhow::Result<Vec<String>> {
     let content = std::fs::read_to_string(path)?;
     Ok(content

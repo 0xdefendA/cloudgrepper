@@ -5,6 +5,14 @@ edition = "2021"
 license = "Apache-2.0"
 description = "grep for cloud storage (S3, Azure, GCS) — Rust port of cado-security/cloudgrep"
 
+[lib]
+name = "cloudgrepper"
+path = "src/lib.rs"
+
+[[bin]]
+name = "cloudgrepper"
+path = "src/main.rs"
+
 [dependencies]
 anyhow = "1"
 async-trait = "0.1"

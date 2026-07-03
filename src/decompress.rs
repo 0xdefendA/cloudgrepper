@@ -1,9 +1,8 @@
 //! Transparent handling of .gz and .zip objects, plus Python-compatible
 //! text decoding (errors="ignore" drops undecodable bytes).
 //!
-//! # Staging
-//! This module has no consumers yet; consumed by search.rs (Task 8).
-#![allow(dead_code)]
+//! # Consumers
+//! Consumed by search.rs.
 
 use std::io::Read;
 

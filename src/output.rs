@@ -4,7 +4,6 @@ use crate::pyjson;
 use serde_json::{Map, Value};
 use std::io::Write;
 
-#[allow(dead_code)]
 pub enum Record {
     Match {
         key_name: String,
@@ -18,7 +17,6 @@ pub enum Record {
     },
 }
 
-#[allow(dead_code)]
 pub fn print_match(rec: &Record, hide_filenames: bool, json_output: bool, out: &mut impl Write) {
     match rec {
         Record::Match {
