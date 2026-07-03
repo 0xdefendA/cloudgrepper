@@ -142,8 +142,18 @@ mod tests {
             parse_date("2023-01-01").unwrap(),
             Utc.with_ymd_and_hms(2023, 1, 1, 0, 0, 0).unwrap()
         );
-        assert!(parse_date("2023-01-01T10:30:00").is_ok());
-        assert!(parse_date("2023-01-01T10:30:00Z").is_ok());
+        assert_eq!(
+            parse_date("2023-01-01T10:30:00").unwrap(),
+            Utc.with_ymd_and_hms(2023, 1, 1, 10, 30, 0).unwrap()
+        );
+        assert_eq!(
+            parse_date("2023-01-01T10:30:00Z").unwrap(),
+            Utc.with_ymd_and_hms(2023, 1, 1, 10, 30, 0).unwrap()
+        );
+        assert_eq!(
+            parse_date("2023-01-01 10:30:00").unwrap(),
+            Utc.with_ymd_and_hms(2023, 1, 1, 10, 30, 0).unwrap()
+        );
         assert!(parse_date("not a date").is_err());
     }
 }
