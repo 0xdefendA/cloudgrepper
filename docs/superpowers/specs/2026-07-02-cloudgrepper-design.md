@@ -36,7 +36,7 @@ Single binary crate. Modules:
 ```
 src/
   main.rs        # entry: parse CLI, init tracing, build tokio runtime, run
-  cli.rs         # clap derive struct — all 18 flags
+  cli.rs         # clap derive struct — all 21 flags
   filters.rs     # object filters: prefix / name-contains / date-range / size
   providers/
     mod.rs       # ObjectStore trait
@@ -185,7 +185,7 @@ divergence found during validation is documented.
 
 ## Milestones
 
-1. **Scaffold + CLI** — cargo project, git init in `cloudgrepper/`, all 18 flags, help/no-args
+1. **Scaffold + CLI** — cargo project, git init in `cloudgrepper/`, all 21 flags, help/no-args
    behavior, Apache-2.0 license, README crediting cado-security.
 2. **S3 end-to-end** — list (filters) → fetch → regex → line output, validated against emulator.
 3. **Decompression** — `.gz`, `.zip`.
