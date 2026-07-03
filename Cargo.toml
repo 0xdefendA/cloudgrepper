@@ -22,6 +22,7 @@ aws-config = { version = "1", features = [
     "credentials-login",
     "sso",
 ] }
+aws-credential-types = "1"
 aws-sdk-s3 = "1"
 azure_core = "0.21"
 azure_identity = "0.21"
@@ -46,3 +47,4 @@ zip = "2"
 
 [dev-dependencies]
 reqwest = { version = "0.12", features = ["json"] }
+tempfile = "3"
