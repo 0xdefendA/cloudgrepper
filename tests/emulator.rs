@@ -144,3 +144,42 @@ async fn s3_filters_and_gz_decompression() {
     );
     assert!(String::from_utf8_lossy(&out.stdout).contains("Running on machine"));
 }
+
+#[tokio::test]
+async fn azure_end_to_end() {
+    // Port of test_azure_search_mocked, against real Azurite
+    if std::env::var("CLOUDGREPPER_EMULATOR").is_err() {
+        eprintln!("skipped: set CLOUDGREPPER_EMULATOR=1");
+        return;
+    }
+    use azure_storage_blobs::prelude::*;
+    let container = ClientBuilder::emulator().container_client("azuretest");
+    let _ = container.create().await; // idempotent
+    container
+        .blob_client("testblob.log")
+        .put_block_blob("Some Azure log entry that mentions azure target")
+        .await
+        .unwrap();
+
+    let out = std::process::Command::new(env!("CARGO_BIN_EXE_cloudgrepper"))
+        .env("AZURE_STORAGE_USE_EMULATOR", "1")
+        .args([
+            "-an",
+            "devstoreaccount1",
+            "-cn",
+            "azuretest",
+            "-q",
+            "azure target",
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("azure target"));
+    assert!(stdout.contains("testblob.log"));
+}

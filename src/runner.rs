@@ -108,8 +108,20 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
         search_provider(Arc::new(provider), keys, cfg.clone(), DEFAULT_WORKERS).await;
     }
 
-    // Azure (Task 12) and GCS (Task 13) blocks land here, mirroring the
-    // S3 block with their own providers and info-level "Searching" logs.
+    if let (Some(account_name), Some(container_name)) = (&cli.account_name, &cli.container_name) {
+        let provider = crate::providers::azure::AzureProvider::new(account_name, container_name)?;
+        let keys = provider.list(&cli.prefix, &filters).await?;
+        info!(
+            "Searching {} files in {}/{} for {}...",
+            keys.len(),
+            account_name,
+            container_name,
+            queries_display(&queries)
+        );
+        search_provider(Arc::new(provider), keys, cfg.clone(), DEFAULT_WORKERS).await;
+    }
+
+    // GCS block (Task 13) lands here.
 
     Ok(())
 }

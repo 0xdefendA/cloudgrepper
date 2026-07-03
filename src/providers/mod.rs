@@ -1,6 +1,7 @@
 //! Cloud storage providers behind one trait: list object metadata
 //! (filtered) and fetch object bytes.
 
+pub mod azure;
 pub mod s3;
 
 use crate::filters::{Filters, ObjectMeta};

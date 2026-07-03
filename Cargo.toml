@@ -18,6 +18,10 @@ anyhow = "1"
 async-trait = "0.1"
 aws-config = { version = "1", features = ["behavior-version-latest"] }
 aws-sdk-s3 = "1"
+azure_core = "0.21"
+azure_identity = "0.21"
+azure_storage = "0.21"
+azure_storage_blobs = "0.21"
 bytes = "1"
 chrono = "0.4"
 clap = { version = "4", features = ["derive"] }
@@ -27,6 +31,7 @@ futures = "0.3"
 regex = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
+time = "0.3"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
