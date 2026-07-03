@@ -206,7 +206,10 @@ pub async fn search_provider(
                         (matched, buf)
                     })
                     .await
-                    .unwrap_or((false, Vec::new()));
+                    .unwrap_or_else(|e| {
+                        error!("Error processing {}: search task panicked: {e}", meta.key);
+                        (false, Vec::new())
+                    });
                     let stdout = std::io::stdout();
                     let mut lock = stdout.lock();
                     let _ = lock.write_all(&buf);
@@ -235,6 +238,8 @@ mod tests {
         std::env::set_var("CLOUDGREPPER_WORKERS", "32");
         assert_eq!(workers(), 32);
         std::env::set_var("CLOUDGREPPER_WORKERS", "zero");
+        assert_eq!(workers(), DEFAULT_WORKERS);
+        std::env::set_var("CLOUDGREPPER_WORKERS", "0");
         assert_eq!(workers(), DEFAULT_WORKERS);
         std::env::remove_var("CLOUDGREPPER_WORKERS");
     }
