@@ -52,3 +52,19 @@ fn bad_regex_exits_nonzero() {
         .unwrap();
     assert_ne!(out.status.code(), Some(0));
 }
+
+#[test]
+fn help_documents_every_multichar_short_form() {
+    // The -an/-lt style shorts are handled by an argv shim, invisible to
+    // clap — their help text must advertise them so users can discover them.
+    let out = bin().arg("--help").output().unwrap();
+    let help = String::from_utf8_lossy(&out.stdout);
+    for short in [
+        "-an", "-cn", "-gb", "-fs", "-pr", "-hf", "-lt", "-lf", "-lp", "-jo", "-cd", "-og",
+    ] {
+        assert!(
+            help.contains(&format!("[short: {short}]")),
+            "help output missing short form {short}"
+        );
+    }
+}
