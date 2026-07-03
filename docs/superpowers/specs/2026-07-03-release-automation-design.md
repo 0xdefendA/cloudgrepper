@@ -55,7 +55,7 @@ workflow artifacts, skips creating the GitHub release).
 | x86_64-unknown-linux-gnu | ubuntu-latest | tar.gz |
 | aarch64-unknown-linux-gnu | ubuntu-24.04-arm | tar.gz |
 | aarch64-apple-darwin | macos-latest | tar.gz |
-| x86_64-apple-darwin | macos-13 | tar.gz |
+| x86_64-apple-darwin | macos-15-intel | tar.gz |
 | x86_64-pc-windows-msvc | windows-latest | zip |
 
 **Per matrix job:** checkout → install stable Rust → `cargo test` (emulator tests self-skip;
