@@ -14,7 +14,7 @@
 - After Task 1, `cargo test` MUST pass in a cold clone with no `../cloudgrep` sibling.
 - Vendored content is copied VERBATIM from upstream (Apache-2.0) with provenance recorded (repo URL + commit hash). Never modify the upstream clone itself.
 - Archive naming: `cloudgrepper-<tag>-<target-triple>.{tar.gz|zip}`; each with a `.sha256` sidecar.
-- The five targets/runners exactly as specced: x86_64-unknown-linux-gnu/ubuntu-latest, aarch64-unknown-linux-gnu/ubuntu-24.04-arm, aarch64-apple-darwin/macos-latest, x86_64-apple-darwin/macos-13, x86_64-pc-windows-msvc/windows-latest.
+- The five targets/runners exactly as specced: x86_64-unknown-linux-gnu/ubuntu-latest, aarch64-unknown-linux-gnu/ubuntu-24.04-arm, aarch64-apple-darwin/macos-latest, x86_64-apple-darwin/macos-15-intel, x86_64-pc-windows-msvc/windows-latest.
 - `cargo fmt` + `cargo clippy --all-targets -- -D warnings` clean before every commit.
 - Live-comparison scripts are dev-time aids: they must resolve python cloudgrep from pip OR the sibling clone and exit with a clear message when neither exists — but they are NEVER wired into CI.
 
@@ -207,7 +207,7 @@ jobs:
           - { target: x86_64-unknown-linux-gnu, runner: ubuntu-latest, ext: tar.gz }
           - { target: aarch64-unknown-linux-gnu, runner: ubuntu-24.04-arm, ext: tar.gz }
           - { target: aarch64-apple-darwin, runner: macos-latest, ext: tar.gz }
-          - { target: x86_64-apple-darwin, runner: macos-13, ext: tar.gz }
+          - { target: x86_64-apple-darwin, runner: macos-15-intel, ext: tar.gz }
           - { target: x86_64-pc-windows-msvc, runner: windows-latest, ext: zip }
     steps:
       - uses: actions/checkout@v4
