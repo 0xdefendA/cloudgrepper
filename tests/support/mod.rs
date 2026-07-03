@@ -9,7 +9,7 @@ pub fn run_search(
     json_output: bool,
 ) -> String {
     let data = std::fs::read(format!(
-        "{}/../cloudgrep/tests/data/{}",
+        "{}/tests/data/{}",
         env!("CARGO_MANIFEST_DIR"),
         fixture
     ))

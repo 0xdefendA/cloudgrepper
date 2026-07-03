@@ -32,10 +32,7 @@ fn no_query_logs_error_and_exits_0() {
 fn yara_without_query_logs_error_and_exits_0() {
     // Python's `if not query: return` runs unconditionally, so -y without
     // -q/-v exits "No query provided" too.
-    let rule = format!(
-        "{}/../cloudgrep/tests/data/yara.rule",
-        env!("CARGO_MANIFEST_DIR")
-    );
+    let rule = format!("{}/tests/data/yara.rule", env!("CARGO_MANIFEST_DIR"));
     let out = bin()
         .args(["-b", "some-bucket", "-y", &rule])
         .output()
