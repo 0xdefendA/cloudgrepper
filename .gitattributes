@@ -1,0 +1,5 @@
+# Byte-exact test assets: golden files are compared byte-for-byte against
+# produced output, and tests/data is the vendored oracle corpus. Git EOL
+# conversion (CRLF on Windows checkouts) corrupts both — disable it.
+tests/golden/** -text
+tests/data/** -text
