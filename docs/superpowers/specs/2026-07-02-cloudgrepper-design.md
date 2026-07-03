@@ -219,7 +219,8 @@ replicate. Everything else follows Python, quirks included.
 
 Minor, also documented: yara `match_strings` holds matched pattern identifiers (yara-x);
 naive `--start_date`/`--end_date` are treated as UTC instead of crashing on naive/aware
-comparison; `--file_size` still does not apply to GCS (Python quirk kept).
+comparison; `--file_size` still does not apply to GCS (Python quirk kept); invalid regexes
+fail fast with exit 1 instead of Python's per-file swallow (exit 0).
 
 ## Conventions
 

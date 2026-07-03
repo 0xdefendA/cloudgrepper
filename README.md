@@ -198,3 +198,5 @@ The following intentional divergences exist between cloudgrepper (Rust) and Pyth
 5. **Naive dates are treated as UTC.** When using `--start_date`/`--end_date` without timezone info, cloudgrepper treats them as UTC. Python can crash when comparing naive and aware datetimes without `-cd/--convert_date`; cloudgrepper handles this gracefully.
 
 6. **`--file_size` does not apply to GCS.** This Python quirk is preserved: size filtering works for S3 and Azure, but not for Google Cloud Storage. This is documented here to avoid confusion during cross-provider validation.
+
+7. **Invalid regex fails fast with exit 1.** cloudgrepper compiles all regex patterns upfront and exits 1 on a bad pattern before contacting any provider. Python compiles lazily per-file and silently swallows the error (exit 0 per-file).

@@ -45,6 +45,13 @@ pub fn decode_ignore(data: &[u8]) -> String {
     }
 }
 
+/// Implement Python's universal-newline translation: \r\n → \n, then lone \r → \n.
+/// Equivalent to reading with open(..., 'r') which applies newline=None (universal mode).
+fn normalize_newlines(s: String) -> String {
+    // Two-pass left-to-right: first collapse \r\n pairs, then remaining \r.
+    s.replace("\r\n", "\n").replace('\r', "\n")
+}
+
 pub fn split_lines(text: &str) -> Vec<&str> {
     let mut lines = Vec::new();
     let mut start = 0;
@@ -62,12 +69,12 @@ pub fn split_lines(text: &str) -> Vec<&str> {
 
 pub fn texts(data: &[u8], kind: FileKind) -> anyhow::Result<Vec<String>> {
     match kind {
-        FileKind::Plain => Ok(vec![decode_ignore(data)]),
+        FileKind::Plain => Ok(vec![normalize_newlines(decode_ignore(data))]),
         FileKind::Gzip => {
             let mut decoder = flate2::read::GzDecoder::new(data);
             let mut buf = Vec::new();
             decoder.read_to_end(&mut buf)?;
-            Ok(vec![decode_ignore(&buf)])
+            Ok(vec![normalize_newlines(decode_ignore(&buf))])
         }
         FileKind::Zip => {
             let cursor = std::io::Cursor::new(data);
@@ -80,7 +87,7 @@ pub fn texts(data: &[u8], kind: FileKind) -> anyhow::Result<Vec<String>> {
                 }
                 let mut buf = Vec::new();
                 member.read_to_end(&mut buf)?;
-                out.push(decode_ignore(&buf));
+                out.push(normalize_newlines(decode_ignore(&buf)));
             }
             Ok(out)
         }
@@ -132,6 +139,35 @@ mod tests {
         let t = texts(&fixture("000000.zip"), FileKind::Zip).unwrap();
         assert!(!t.is_empty());
         assert!(t.iter().any(|s| s.contains("Running on machine")));
+    }
+
+    #[test]
+    fn normalize_newlines_crlf() {
+        // CRLF: texts returns normalized text, split_lines yields clean lines
+        let data = b"alpha\r\nbeta\r\n";
+        let t = texts(data, FileKind::Plain).unwrap();
+        assert_eq!(t.len(), 1);
+        assert_eq!(t[0], "alpha\nbeta\n");
+        let lines = split_lines(&t[0]);
+        assert_eq!(lines, vec!["alpha\n", "beta\n"]);
+    }
+
+    #[test]
+    fn normalize_newlines_lone_cr() {
+        let data = b"a\rb";
+        let t = texts(data, FileKind::Plain).unwrap();
+        assert_eq!(t.len(), 1);
+        assert_eq!(t[0], "a\nb");
+    }
+
+    #[test]
+    fn normalize_newlines_mixed() {
+        // Input: "x\r\r\ny"
+        // Pass 1: replace \r\n → \n: "x\r\ny"
+        // Pass 2: replace \r → \n: "x\n\ny"
+        let data = b"x\r\r\ny";
+        let t = texts(data, FileKind::Plain).unwrap();
+        assert_eq!(t[0], "x\n\ny");
     }
 
     #[test]

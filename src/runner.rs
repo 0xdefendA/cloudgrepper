@@ -94,7 +94,7 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
         json_output: cli.json_output,
         log_format,
         log_properties,
-        account_name: cli.account_name.clone(),
+        account_name: None,
     });
 
     let filters = Filters {
@@ -135,10 +135,14 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
             container_name,
             queries_display(&queries)
         );
+        let azure_cfg = Arc::new(SearchConfig {
+            account_name: cli.account_name.clone(),
+            ..(*cfg).clone()
+        });
         search_provider(
             Arc::new(provider),
             keys,
-            cfg.clone(),
+            azure_cfg,
             yara_rules.clone(),
             workers(),
         )

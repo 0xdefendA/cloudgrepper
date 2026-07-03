@@ -22,6 +22,7 @@ use serde_json::Value;
 use std::io::Write;
 use tracing::error;
 
+#[derive(Clone)]
 pub struct SearchConfig {
     pub patterns: Vec<(String, Regex)>,
     pub hide_filenames: bool,
@@ -316,5 +317,36 @@ mod tests {
     #[test]
     fn compile_patterns_rejects_bad_regex() {
         assert!(compile_patterns(&["(unclosed".to_string()]).is_err());
+    }
+
+    #[test]
+    fn azure_json_gz_aborts_at_non_string_entry() {
+        // Build gz bytes containing JSON array with: string, dict (aborts), unreachable string
+        use flate2::write::GzEncoder;
+        use flate2::Compression;
+        use std::io::Write as IoWrite;
+        let json = br#"["first azure target hit", {"not": "a string"}, "second azure target never reached"]"#;
+        let mut enc = GzEncoder::new(Vec::new(), Compression::default());
+        enc.write_all(json).unwrap();
+        let gz_bytes = enc.finish().unwrap();
+
+        let c = SearchConfig {
+            patterns: compile_patterns(&["azure target".to_string()]).unwrap(),
+            hide_filenames: false,
+            json_output: false,
+            log_format: None,
+            log_properties: vec![],
+            account_name: Some("acct".into()),
+        };
+        let (found, out) = run(&c, "export.json.gz", &gz_bytes);
+        assert!(found, "should match before hitting the non-string entry");
+        assert!(
+            out.contains("first azure target hit"),
+            "first match should appear"
+        );
+        assert!(
+            !out.contains("second azure target"),
+            "should abort at dict, not reach second string"
+        );
     }
 }
