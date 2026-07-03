@@ -183,3 +183,42 @@ async fn azure_end_to_end() {
     assert!(stdout.contains("azure target"));
     assert!(stdout.contains("testblob.log"));
 }
+
+#[tokio::test]
+async fn gcs_end_to_end() {
+    // Port of test_google_search_mocked, against fake-gcs-server
+    if std::env::var("CLOUDGREPPER_EMULATOR").is_err() {
+        eprintln!("skipped: set CLOUDGREPPER_EMULATOR=1");
+        return;
+    }
+    // Seed via fake-gcs JSON API (bucket create + object upload)
+    let http = reqwest::Client::new();
+    let _ = http
+        .post("http://localhost:4443/storage/v1/b?project=test-project")
+        .json(&serde_json::json!({"name": "gcstest"}))
+        .send()
+        .await
+        .unwrap();
+    http.post("http://localhost:4443/upload/storage/v1/b/gcstest/o?uploadType=media&name=test_gcs_file.log")
+        .body("This is some fake file: google target")
+        .send()
+        .await
+        .unwrap()
+        .error_for_status()
+        .unwrap();
+
+    let out = std::process::Command::new(env!("CARGO_BIN_EXE_cloudgrepper"))
+        .env("STORAGE_EMULATOR_HOST", "http://localhost:4443")
+        .args(["-gb", "gcstest", "-q", "google target"])
+        .output()
+        .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("google target"));
+    assert!(stdout.contains("test_gcs_file.log"));
+}

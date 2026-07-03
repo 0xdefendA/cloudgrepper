@@ -2,6 +2,7 @@
 //! (filtered) and fetch object bytes.
 
 pub mod azure;
+pub mod gcs;
 pub mod s3;
 
 use crate::filters::{Filters, ObjectMeta};

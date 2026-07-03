@@ -121,7 +121,22 @@ pub async fn run(cli: Cli) -> anyhow::Result<()> {
         search_provider(Arc::new(provider), keys, cfg.clone(), DEFAULT_WORKERS).await;
     }
 
-    // GCS block (Task 13) lands here.
+    if let Some(google_bucket) = &cli.google_bucket {
+        let provider = crate::providers::gcs::GcsProvider::new(google_bucket).await?;
+        // Python's filter_object_google never checks size
+        let gcs_filters = Filters {
+            check_size: false,
+            ..filters.clone()
+        };
+        let keys = provider.list(&cli.prefix, &gcs_filters).await?;
+        info!(
+            "Searching {} files in {} for {}...",
+            keys.len(),
+            google_bucket,
+            queries_display(&queries)
+        );
+        search_provider(Arc::new(provider), keys, cfg.clone(), DEFAULT_WORKERS).await;
+    }
 
     Ok(())
 }
